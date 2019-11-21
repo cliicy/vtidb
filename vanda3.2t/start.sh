@@ -5,14 +5,17 @@ if [ "$1" = "" ]; then echo -e "Usage:\n\t2_initdb.sh cfg_file"; exit 1; fi
 if [ ! -e ${cfg_file} ]; then echo "can't find configuration file [${cfg_file}]", exit 2; fi
 source ${cfg_file}
 
-${app_basedir}/bin/initdb -D ${app_datadir}
-cp -f ${app_pgconf} ${app_datadir}
-${app_basedir}/bin/pg_ctl -D ${app_datadir} -l ${app_dbglog} start
+##start pd-server
+${app_basedir}/bin/pd-server --data-dir=${app_datadir_pd} --log-file=${app_pdlog} &
+sleep 3
 
-#${app_basedir}/bin/pg_ctl restart -D ${app_datadir}
-#${app_basedir}/bin/pg_ctl reload -D ${app_datadir}
+##start tikv
+${app_basedir}/bin/tikv-server --pd=${host}:${port} --store=${app_datadir_tikv} --log-file=${app_tikvlog} &
+sleep 3
 
-sleep 5
+##start tidb
+${app_basedir}/bin/tidb-server --store=tikv --path=${host}:${port} --log-file=${app_tidblog} &
+sleep 3
 
 #for i in {1..1200};
 #do
@@ -22,7 +25,10 @@ sleep 5
 #    sleep 3
 #done
 
-#create test database for pgbench to benchmark
-echo -e "create database ${dbname} 
-\q" | ${app_basedir}/bin/psql postgres
+#create test database/user for sysbench to benchmark
+client_cmd="${cli_access} -h ${host} -P ${cli_port} -u ${cli_usr} -D ${cli_db}"
+echo -e "create user '${user}'@'%' identified by 'tcn';" | ${client_cmd}
+echo -e "GRANT ALL ON *.* TO '${user}'@'%';" | ${client_cmd}
+
+echo -e "create database ${dbname}" | ${client_cmd} 
 

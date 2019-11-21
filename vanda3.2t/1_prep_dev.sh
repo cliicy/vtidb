@@ -10,24 +10,18 @@ source $1
 lsblk ${disk}
 if [ "$?" -ne 0 ]; then echo "cannot find disk [${disk}]"; exit 3; fi
 
-# stop mysql service first, since it my occupy the disk
+# stop service first, since it my occupy the disk
 ./stop.sh
 
 # prepare the mount point and other folders
 if [ ! -e ${mnt_point_data} ]; then sudo mkdir -p ${mnt_point_data}; fi
-#if [ ! -e ${mnt_point_data_pg} ]; then sudo mkdir -p ${mnt_point_data_pg}; fi
 
 #pushd ${css_util_dir}
 #sudo ${initcard}
 #popd
 
 sudo umount ${disk}
-#sudo umount ${diskp1}
-#sudo umount ${diskp2}
 
-#sudo mkfs.${fs_type} -f ${disk}
-#sh partedcsd.sh ${disk} 2
-sudo mkfs -t ${fs_type} -f ${disk}
-#sudo mkfs -t ${fs_type} ${disk}
+sudo mkfs -t ${fs_type} ${disk}
 sudo mount ${disk} ${mnt_opt} ${mnt_point_data}
 
