@@ -26,12 +26,12 @@ collect_sys_info ${output_dir} ${css_status}
 
 echo "export output_dir=${output_dir}" > ./output.dir
 #collect some extra information
-pginfo=${output_dir}/postgresql.opts
-cmd_psql=${app_basedir}/bin/psql
-${cmd_psql} -c 'show shared_buffers' postgres > ${pginfo} 
-${cmd_psql} -c 'show wal_compression' postgres >> ${pginfo} 
-${cmd_psql} -c 'show max_wal_size' postgres >> ${pginfo} 
-ps aux | grep postgresql | grep -v grep >> ${pginfo}
+#pginfo=${output_dir}/postgresql.opts
+#cmd_psql=${app_basedir}/bin/psql
+#${cmd_psql} -c 'show shared_buffers' postgres > ${pginfo} 
+#${cmd_psql} -c 'show wal_compression' postgres >> ${pginfo} 
+#${cmd_psql} -c 'show max_wal_size' postgres >> ${pginfo} 
+#ps aux | grep postgresql | grep -v grep >> ${pginfo}
 
 echo "will run workload(s) ${workload_set}"
 lastwl=`echo ${workload_set} | awk '{print $NF}'`
@@ -44,8 +44,8 @@ for workload in ${workload_set};
         if [ "prepare" == "${workload}" ]; then cmd="prepare"; workload="oltp_common"; workload_fname="prepare"; fi
         echo -e "sfx_message starts at: " `date +%Y-%m-%d\ %H:%M:%S` "\n"  > ${output_dir}/${workload_fname}.sfx_message
         sudo chmod 666 /var/log/sfx_messages;
-	#tail -f -n 0 /var/log/sfx_messages >> ${output_dir}/${workload_fname}.sfx_message &
-        #echo $! > ${output_dir}/tail.${workload_fname}.pid
+	tail -f -n 0 /var/log/sfx_messages >> ${output_dir}/${workload_fname}.sfx_message &
+        echo $! > ${output_dir}/tail.${workload_fname}.pid
         echo "iostat start at: " `date +%Y-%m-%d\ %H:%M:%S` > ${output_dir}/${workload_fname}.iostat
         tail -f -n 0 ${app_log} > ${output_dir}/${workload_fname}.${app}.log &
         echo $! > ${output_dir}/tail.${workload_fname}.${app}.log.pid
@@ -62,11 +62,12 @@ for workload in ${workload_set};
         if [ "${cmd}" == "run" ];
         then
                 #start_blk_trace ${output_dir} ${workload_fname} ${disk} 120 &
-                #ps -ef | grep blktrace | grep -v grep | awk '{print $2}' | xargs kill -15
+                ps -ef | grep blktrace | grep -v grep | awk '{print $2}' | xargs kill -15
         fi
 
         time sysbench \
-                --db-driver=pgsql --pgsql-db=${dbname} --pgsql-user=${user} \
+                --db-driver=mysql --mysql-db=${dbname} --mysql-user=${cli_usr} \
+                --mysql-host=${host} --mysql-port=${cli_port} \
                 --report-interval=${rpt_interval} --time=${run_time} --threads=${threads} \
                 --percentile=${percentile} ${sysbench_dir}/${workload}.lua\
                 --warmup-time=${warmup_time} --rand-type=${rand_type} --histogram=on \
@@ -77,7 +78,7 @@ for workload in ${workload_set};
                 ${cmd} \
                 >> ${output_dir}/${workload_fname}.result
 
-        ps aux | grep sysbench | grep -v grep >> ${pginfo}
+        ps aux | grep sysbench | grep -v grep >> ${output_dir}/${workload_fname}.cmd 
 
         du --block-size=1G ${app_datadir} > ${output_dir}/${workload_fname}.dbsize
         cat /sys/block/${dev_name}/sfx_smart_features/sfx_capacity_stat >> ${output_dir}/${workload_fname}.dbsize
@@ -124,7 +125,8 @@ ssd_name=$(basename "$PWD")
 #ffactor=`echo -e "\d+ pg_trigger" | ${cmd_psql} ${dbname} | grep fillfactor | cut -d ':' -f2 | cut -d '=' -f2`
 #ffactor=`echo -e "\d+ pgbench_accounts" | ${cmd_psql} ${dbname} | grep fillfactor | cut -d ':' -f2 | cut -d '=' -f2`
 #gen_benchinfo_postgres ${ssd_name} ${scale} ${output_dir} ${ffactor}
+#client_cmd="${cli_access} -h ${host} -P ${cli_port} -u ${cli_usr} -D ${cli_db}"
 #ffactor=`echo -e "\d+ ${tbname}" | ${cmd_psql} ${dbname} | grep "Options: fillfactor" | cut -d ':' -f2 | cut -d '=' -f2`
-#gen_benchinfo_postgres ${ssd_name} ${table_count}.${table_size} ${output_dir} ${ffactor}
+gen_benchinfo_postgres ${ssd_name} ${table_count}.${table_size} ${output_dir}
 #echo "${ssd_name} ${table_count}.${table_size} ${output_dir} ${ffactor}" >> ${output_dir}/ben.info
 
