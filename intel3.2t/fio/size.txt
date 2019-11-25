@@ -1,0 +1,8 @@
+2019-11-15T16:43:30+0800
+precondition starts ...
+Filesystem      Size  Used Avail Use% Mounted on
+devtmpfs         63G     0   63G   0% /dev
+Filesystem      Size  Used Avail Use% Mounted on
+devtmpfs         63G     0   63G   0% /dev
+precondition completed ...
+2019-11-15T16:49:36+0800
