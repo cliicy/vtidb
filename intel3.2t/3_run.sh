@@ -80,7 +80,7 @@ for workload in ${workload_set};
 
         ps aux | grep sysbench | grep -v grep >> ${output_dir}/${workload_fname}.cmd 
 
-        du --block-size=1G ${app_datadir} > ${output_dir}/${workload_fname}.dbsize
+        du --block-size=1G ${app_datadir_root} > ${output_dir}/${workload_fname}.dbsize
         cat /sys/block/${dev_name}/sfx_smart_features/sfx_capacity_stat >> ${output_dir}/${workload_fname}.dbsize
 
         echo -e "\nsfx_messages ends at: `date +%Y-%m-%d_%H:%M:%S`\n"  >> ${output_dir}/${workload_fname}.sfx_message
