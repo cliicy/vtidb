@@ -7,15 +7,15 @@ source ${cfg_file}
 
 ##start pd-server
 ${app_basedir}/bin/pd-server --data-dir=${app_datadir_pd} --log-file=${app_pdlog} &
-sleep 3
+sleep 5
 
 ##start tikv
 ${app_basedir}/bin/tikv-server --pd=${host}:${port} --store=${app_datadir_tikv} --log-file=${app_tikvlog} &
-sleep 3
+sleep 5
 
 ##start tidb
 ${app_basedir}/bin/tidb-server --store=tikv --path=${host}:${port} --log-file=${app_tidblog} &
-sleep 3
+sleep 5
 
 #for i in {1..1200};
 #do

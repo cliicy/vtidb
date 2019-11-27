@@ -16,10 +16,6 @@ if [ "$?" -ne 0 ]; then echo "cannot find disk [${disk}]"; exit 3; fi
 # prepare the mount point and other folders
 if [ ! -e ${mnt_point_data} ]; then sudo mkdir -p ${mnt_point_data}; fi
 
-#pushd ${css_util_dir}
-#sudo ${initcard}
-#popd
-
 sudo umount ${disk}
 
 sudo mkfs -t ${fs_type} ${disk}
