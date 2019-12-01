@@ -15,9 +15,9 @@ echo "test output will be saved in ${output_dir}"
 if [ ! -e ${output_dir} ]; then mkdir -p ${output_dir}; fi
 
 # collect MySQL startup options / configuration / test script
-cp $0 ${output_dir}
-cp ${cfg_file} ${output_dir}
-cp ${app_pgconf%/*}/postgresql.conf ${output_dir}
+#cp $0 ${output_dir}
+#cp ${cfg_file} ${output_dir}
+#cp ${app_pgconf%/*}/postgresql.conf ${output_dir}
 
 source ../lib/common-lib
 source ../lib/bench-lib

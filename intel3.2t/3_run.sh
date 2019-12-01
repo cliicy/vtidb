@@ -14,10 +14,10 @@ fi
 echo "test output will be saved in ${output_dir}"
 if [ ! -e ${output_dir} ]; then mkdir -p ${output_dir}; fi
 
-# collect MySQL startup options / configuration / test script
+# collect TiDB startup options / configuration / test script
 cp $0 ${output_dir}
 cp ${cfg_file} ${output_dir}
-cp ${app_pgconf%/*}/postgresql.conf ${output_dir}
+cp ${app_datadir_tikv}/last_tikv.toml ${output_dir}
 
 source ../lib/common-lib
 source ../lib/bench-lib
@@ -26,12 +26,8 @@ collect_sys_info ${output_dir} ${css_status}
 
 echo "export output_dir=${output_dir}" > ./output.dir
 #collect some extra information
-#pginfo=${output_dir}/postgresql.opts
-#cmd_psql=${app_basedir}/bin/psql
-#${cmd_psql} -c 'show shared_buffers' postgres > ${pginfo} 
-#${cmd_psql} -c 'show wal_compression' postgres >> ${pginfo} 
-#${cmd_psql} -c 'show max_wal_size' postgres >> ${pginfo} 
-#ps aux | grep postgresql | grep -v grep >> ${pginfo}
+client_cmd="${cli_access} -h ${host} -P ${cli_port} -u ${cli_usr} -D ${cli_db}"
+${client_cmd} -N -e 'show variables' > ${output_dir}/tidb_var.log
 
 echo "will run workload(s) ${workload_set}"
 lastwl=`echo ${workload_set} | awk '{print $NF}'`
@@ -49,6 +45,9 @@ for workload in ${workload_set};
         echo "iostat start at: " `date +%Y-%m-%d\ %H:%M:%S` > ${output_dir}/${workload_fname}.iostat
         tail -f -n 0 ${app_log} > ${output_dir}/${workload_fname}.${app}.log &
         echo $! > ${output_dir}/tail.${workload_fname}.${app}.log.pid
+        echo "tidb slow log start at: " `date +%Y-%m-%d\ %H:%M:%S` > ${output_dir}/${workload_fname}.tidb_slow_log
+        tail -f -n 0 ${tidb_slowlog} >> ${output_dir}/${workload_fname}.tidb_slow_log &
+        echo $! > ${output_dir}/tail.${workload_fname}.${app}.tidb_slow_log.pid
         # try to keep existing result file
         if [ -e ${output_dir}/${workload_fname}.result ];
         then
@@ -94,6 +93,8 @@ for workload in ${workload_set};
         rm -f ${output_dir}/${workload_fname}.iostat.pid
         kill `cat ${output_dir}/tail.${workload_fname}.${app}.log.pid`
         rm -f ${output_dir}/tail.${workload_fname}.${app}.log.pid
+        echo "tidb slow log ends at: " `date +%Y-%m-%d\ %H:%M:%S` >> ${output_dir}/${workload_fname}.tidb_slow_log
+        kill `cat ${output_dir}/tail.${workload_fname}.${app}.tidb_slow_log.pid`
         sleep ${sleep_after_case}
 
         # manaully run vacuum to clean up the garbages start

@@ -10,7 +10,7 @@ ${app_basedir}/bin/pd-server --data-dir=${app_datadir_pd} --log-file=${app_pdlog
 sleep 5
 
 ##start tikv
-${app_basedir}/bin/tikv-server --pd=${host}:${port} --store=${app_datadir_tikv} --log-file=${app_tikvlog} &
+${app_basedir}/bin/tikv-server --pd=${host}:${port} --store=${app_datadir_tikv} --log-file=${app_tikvlog} -C ${tidb_cfg}  &
 sleep 5
 
 ##start tidb
@@ -31,4 +31,7 @@ echo -e "create user '${user}'@'%' identified by 'tcn';" | ${client_cmd}
 echo -e "GRANT ALL ON *.* TO '${user}'@'%';" | ${client_cmd}
 
 echo -e "create database ${dbname}" | ${client_cmd} 
+echo -e "set @@global.tidb_disable_txn_auto_retry = 0;" | ${client_cmd} 
+echo -e "set @@global.tidb_retry_limit = 10;" | ${client_cmd} 
+sleep 3
 
