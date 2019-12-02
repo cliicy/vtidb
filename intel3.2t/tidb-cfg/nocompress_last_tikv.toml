@@ -1,5 +1,5 @@
 log-level = "info"
-log-file = ""
+log-file = "/opt/data/intel/tidb-v4.0.0-alpha/logs/tikv.log"
 log-rotation-timespan = "1d"
 panic-when-unexpected-key-or-data = false
 [readpool.storage]
@@ -12,9 +12,9 @@ max-tasks-per-worker-low = 2000
 stack-size = "10MiB"
 
 [readpool.coprocessor]
-high-concurrency = 19
-normal-concurrency = 19
-low-concurrency = 19
+high-concurrency = 25
+normal-concurrency = 25
+low-concurrency = 25
 max-tasks-per-worker-high = 2000
 max-tasks-per-worker-normal = 2000
 max-tasks-per-worker-low = 2000
@@ -53,7 +53,7 @@ request-batch-wait-duration = "1ms"
 [server.labels]
 
 [storage]
-data-dir = "./"
+data-dir = "/opt/data/intel/tidb-v4.0.0-alpha/tikv_data"
 gc-ratio-threshold = 1.1
 max-key-size = 4096
 scheduler-concurrency = 2048000
@@ -173,7 +173,7 @@ enable-unordered-write = false
 
 [rocksdb.defaultcf]
 block-size = "64KiB"
-block-cache-size = "32198MiB"
+block-cache-size = "64418MiB"
 disable-block-cache = false
 cache-index-and-filter-blocks = true
 pin-l0-filter-and-index-blocks = true
@@ -183,7 +183,7 @@ whole-key-filtering = true
 bloom-filter-bits-per-key = 10
 block-based-bloom-filter = false
 read-amp-bytes-per-bit = 0
-compression-per-level = ["no", "no", "lz4", "lz4", "lz4", "zstd", "zstd"]
+compression-per-level = ["no", "no", "no", "no", "no", "no", "no"]
 write-buffer-size = "128MiB"
 max-write-buffer-number = 5
 min-write-buffer-number-to-merge = 1
@@ -208,7 +208,7 @@ enable-doubly-skiplist = true
 
 [rocksdb.defaultcf.titan]
 min-blob-size = "1KiB"
-blob-file-compression = "lz4"
+blob-file-compression = "no"
 blob-cache-size = "0KiB"
 min-gc-batch-size = "16MiB"
 max-gc-batch-size = "64MiB"
@@ -219,7 +219,7 @@ blob-run-mode = "normal"
 
 [rocksdb.writecf]
 block-size = "64KiB"
-block-cache-size = "19319MiB"
+block-cache-size = "38651MiB"
 disable-block-cache = false
 cache-index-and-filter-blocks = true
 pin-l0-filter-and-index-blocks = true
@@ -229,7 +229,7 @@ whole-key-filtering = false
 bloom-filter-bits-per-key = 10
 block-based-bloom-filter = false
 read-amp-bytes-per-bit = 0
-compression-per-level = ["no", "no", "lz4", "lz4", "lz4", "zstd", "zstd"]
+compression-per-level = ["no", "no", "no", "no", "no", "no", "no"]
 write-buffer-size = "128MiB"
 max-write-buffer-number = 5
 min-write-buffer-number-to-merge = 1
@@ -254,7 +254,7 @@ enable-doubly-skiplist = true
 
 [rocksdb.writecf.titan]
 min-blob-size = "1KiB"
-blob-file-compression = "lz4"
+blob-file-compression = "no"
 blob-cache-size = "0KiB"
 min-gc-batch-size = "16MiB"
 max-gc-batch-size = "64MiB"
@@ -300,7 +300,7 @@ enable-doubly-skiplist = true
 
 [rocksdb.lockcf.titan]
 min-blob-size = "1KiB"
-blob-file-compression = "lz4"
+blob-file-compression = "no"
 blob-cache-size = "0KiB"
 min-gc-batch-size = "16MiB"
 max-gc-batch-size = "64MiB"
@@ -346,7 +346,7 @@ enable-doubly-skiplist = true
 
 [rocksdb.raftcf.titan]
 min-blob-size = "1KiB"
-blob-file-compression = "lz4"
+blob-file-compression = "no"
 blob-cache-size = "0KiB"
 min-gc-batch-size = "16MiB"
 max-gc-batch-size = "64MiB"
@@ -400,7 +400,7 @@ whole-key-filtering = true
 bloom-filter-bits-per-key = 10
 block-based-bloom-filter = false
 read-amp-bytes-per-bit = 0
-compression-per-level = ["no", "no", "lz4", "lz4", "lz4", "zstd", "zstd"]
+compression-per-level = ["no", "no", "no", "no", "no", "no", "no"]
 write-buffer-size = "128MiB"
 max-write-buffer-number = 5
 min-write-buffer-number-to-merge = 1
@@ -425,7 +425,7 @@ enable-doubly-skiplist = true
 
 [raftdb.defaultcf.titan]
 min-blob-size = "1KiB"
-blob-file-compression = "lz4"
+blob-file-compression = "no"
 blob-cache-size = "0KiB"
 min-gc-batch-size = "16MiB"
 max-gc-batch-size = "64MiB"

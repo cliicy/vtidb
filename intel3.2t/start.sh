@@ -33,5 +33,6 @@ echo -e "GRANT ALL ON *.* TO '${user}'@'%';" | ${client_cmd}
 echo -e "create database ${dbname}" | ${client_cmd} 
 echo -e "set @@global.tidb_disable_txn_auto_retry = 0;" | ${client_cmd} 
 echo -e "set @@global.tidb_retry_limit = 10;" | ${client_cmd} 
+#echo -e "set @@global.sql_mode = '';" | ${client_cmd} 
 sleep 3
 
