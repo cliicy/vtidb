@@ -14,10 +14,10 @@ fi
 echo "test output will be saved in ${output_dir}"
 if [ ! -e ${output_dir} ]; then mkdir -p ${output_dir}; fi
 
-# collect MySQL startup options / configuration / test script
-#cp $0 ${output_dir}
-#cp ${cfg_file} ${output_dir}
-#cp ${app_pgconf%/*}/postgresql.conf ${output_dir}
+# collect TiDB startup options / configuration / test script
+cp $0 ${output_dir}
+cp ${cfg_file} ${output_dir}
+cp ${app_datadir_tikv}/last_tikv.toml ${output_dir}
 
 source ../lib/common-lib
 source ../lib/bench-lib
@@ -26,12 +26,8 @@ collect_sys_info ${output_dir} ${css_status}
 
 echo "export output_dir=${output_dir}" > ./output.dir
 #collect some extra information
-#pginfo=${output_dir}/postgresql.opts
-#cmd_psql=${app_basedir}/bin/psql
-#${cmd_psql} -c 'show shared_buffers' postgres > ${pginfo} 
-#${cmd_psql} -c 'show wal_compression' postgres >> ${pginfo} 
-#${cmd_psql} -c 'show max_wal_size' postgres >> ${pginfo} 
-#ps aux | grep postgresql | grep -v grep >> ${pginfo}
+client_cmd="${cli_access} -h ${host} -P ${cli_port} -u ${cli_usr} -D ${cli_db}"
+${client_cmd} -N -e 'show variables' > ${output_dir}/tidb_var.log
 
 echo "will run workload(s) ${workload_set}"
 lastwl=`echo ${workload_set} | awk '{print $NF}'`
@@ -49,6 +45,18 @@ for workload in ${workload_set};
         echo "iostat start at: " `date +%Y-%m-%d\ %H:%M:%S` > ${output_dir}/${workload_fname}.iostat
         tail -f -n 0 ${app_log} > ${output_dir}/${workload_fname}.${app}.log &
         echo $! > ${output_dir}/tail.${workload_fname}.${app}.log.pid
+        echo "tidb slow log start at: " `date +%Y-%m-%d\ %H:%M:%S` > ${output_dir}/${workload_fname}.tidb_slow_log
+        tail -f -n 0 ${tidb_slowlog} >> ${output_dir}/${workload_fname}.tidb_slow_log &
+        echo $! > ${output_dir}/tail.${workload_fname}.${app}.tidb_slow_log.pid
+        echo "tikv log start at: " `date +%Y-%m-%d\ %H:%M:%S` > ${output_dir}/${workload_fname}.tikv.log
+        tail -f -n 0 ${app_tikvlog} >> ${output_dir}/${workload_fname}.tikv.log &
+        echo $! > ${output_dir}/tail.${workload_fname}.${app}.tikv.log.pid
+        echo "tidb log start at: " `date +%Y-%m-%d\ %H:%M:%S` > ${output_dir}/${workload_fname}.tidb.log
+        tail -f -n 0 ${app_tidblog} >> ${output_dir}/${workload_fname}.tidb.log &
+        echo $! > ${output_dir}/tail.${workload_fname}.${app}.tidb.log.pid
+        echo "tikv DB LOG start at: " `date +%Y-%m-%d\ %H:%M:%S` > ${output_dir}/${workload_fname}.tidb.DBLOG
+        tail -f -n 0 ${tikv_DBLOG} >> ${output_dir}/${workload_fname}.tidb.DBLOG &
+        echo $! > ${output_dir}/tail.${workload_fname}.${app}.tidb.DBLOG.pid
         # try to keep existing result file
         if [ -e ${output_dir}/${workload_fname}.result ];
         then
@@ -94,28 +102,19 @@ for workload in ${workload_set};
         rm -f ${output_dir}/${workload_fname}.iostat.pid
         kill `cat ${output_dir}/tail.${workload_fname}.${app}.log.pid`
         rm -f ${output_dir}/tail.${workload_fname}.${app}.log.pid
+        echo "tidb slow log ends at: " `date +%Y-%m-%d\ %H:%M:%S` >> ${output_dir}/${workload_fname}.tidb_slow_log
+        kill `cat ${output_dir}/tail.${workload_fname}.${app}.tidb_slow_log.pid`
+        rm -f ${output_dir}/tail.${workload_fname}.${app}.tidb_slow_log.pid
+        echo "tidb log ends at: " `date +%Y-%m-%d\ %H:%M:%S` >> ${output_dir}/${workload_fname}.tidb.log
+        kill `cat ${output_dir}/tail.${workload_fname}.${app}.tidb.log.pid`
+        rm -f ${output_dir}/tail.${workload_fname}.${app}.tidb.log.pid
+        echo "tikv log ends at: " `date +%Y-%m-%d\ %H:%M:%S` >> ${output_dir}/${workload_fname}.tikv.log
+        kill `cat ${output_dir}/tail.${workload_fname}.${app}.tikv.log.pid`
+        rm -f ${output_dir}/tail.${workload_fname}.${app}.tikv.log.pid
+        echo "tikv DBLOG ends at: " `date +%Y-%m-%d\ %H:%M:%S` >> ${output_dir}/${workload_fname}.tidb.DBLOG
+        kill `cat ${output_dir}/tail.${workload_fname}.${app}.tidb.DBLOG.pid`
+        rm -f ${output_dir}/tail.${workload_fname}.${app}.tidb.DBLOG.pid
         sleep ${sleep_after_case}
-
-        # manaully run vacuum to clean up the garbages start
-        #if [ "${workload_fname}" == "prepare" ] || [ "${workload_fname}" != "prepare" && "${workload_fname}" != "${lastwl}" ]; then
-        #if [ "${workload_fname}" != "prepare" ] ; then
-        #    v_flag=`echo ${vacuum_type} | awk '{print $2}'`
-        #    v_flag=${v_flag:-}
-        #    vacuum_flag=vacuum.${v_flag}
-	#    vacuum_flag=${vacuum_flag%.}	
-        #    echo "${vacuum_type}" > ${output_dir}/${workload_fname}.${vacuum_flag}
-        #    echo -e "\n${vacuum_type} starts at: `date +%Y-%m-%d_%H:%M:%S`\n"  >> ${output_dir}/${workload_fname}.${vacuum_flag}
-        #    echo -e "select * from pg_stat_user_tables where relname = '${tbname}';" | ${cmd_psql} ${dbname} >> ${output_dir}/${workload_fname}.${vacuum_flag}
-        #    echo -e "${vacuum_type} ;" | ${cmd_psql} ${dbname} >> ${output_dir}/${workload_fname}.${vacuum_flag}
-        #    echo -e "select * from pg_stat_user_tables where relname = '${tbname}';" | ${cmd_psql} ${dbname} >> ${output_dir}/${workload_fname}.${vacuum_flag}
-        #    echo -e "\n${vacuum_type} ends at: `date +%Y-%m-%d_%H:%M:%S`\n"  >> ${output_dir}/${workload_fname}.${vacuum_flag}
-        #fi
-        # manaully run vacuum to clean up the garbages end 
-
-        #echo -e "select pg_database_size('${dbname}')/1024/1024/1024||'G'
-#" | ${cmd_psql} ${dbname} > ${output_dir}/${workload_fname}.pgdbsz
-#        echo -e "select pg_indexes_size('${tbname}')/1024/1024/1024||'G'
-#" | ${cmd_psql} ${dbname} > ${output_dir}/${workload_fname}.pgindexsz
     done
 
 generate_csv ${output_dir}

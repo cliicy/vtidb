@@ -15,3 +15,5 @@ do
         sleep 3
     done
 done
+
+ps -ef | grep tail | grep -v grep |grep tidb-slow |grep tidb-slow.log  | awk '{print $2}' | xargs kill -9
