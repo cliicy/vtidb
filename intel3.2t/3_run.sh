@@ -48,6 +48,12 @@ for workload in ${workload_set};
         echo "tidb slow log start at: " `date +%Y-%m-%d\ %H:%M:%S` > ${output_dir}/${workload_fname}.tidb_slow_log
         tail -f -n 0 ${tidb_slowlog} >> ${output_dir}/${workload_fname}.tidb_slow_log &
         echo $! > ${output_dir}/tail.${workload_fname}.${app}.tidb_slow_log.pid
+        echo "tikv log start at: " `date +%Y-%m-%d\ %H:%M:%S` > ${output_dir}/${workload_fname}.tikv.log
+        tail -f -n 0 ${app_tikvlog} >> ${output_dir}/${workload_fname}.tikv.log &
+        echo $! > ${output_dir}/tail.${workload_fname}.${app}.tikv.log.pid
+        echo "tidb log start at: " `date +%Y-%m-%d\ %H:%M:%S` > ${output_dir}/${workload_fname}.tidb.log
+        tail -f -n 0 ${app_tidblog} >> ${output_dir}/${workload_fname}.tidb.log &
+        echo $! > ${output_dir}/tail.${workload_fname}.${app}.tidb.log.pid
         # try to keep existing result file
         if [ -e ${output_dir}/${workload_fname}.result ];
         then
@@ -95,6 +101,13 @@ for workload in ${workload_set};
         rm -f ${output_dir}/tail.${workload_fname}.${app}.log.pid
         echo "tidb slow log ends at: " `date +%Y-%m-%d\ %H:%M:%S` >> ${output_dir}/${workload_fname}.tidb_slow_log
         kill `cat ${output_dir}/tail.${workload_fname}.${app}.tidb_slow_log.pid`
+        rm -f ${output_dir}/tail.${workload_fname}.${app}.tidb_slow_log.pid
+        echo "tidb log ends at: " `date +%Y-%m-%d\ %H:%M:%S` >> ${output_dir}/${workload_fname}.tidb.log
+        kill `cat ${output_dir}/tail.${workload_fname}.${app}.tidb.log.pid`
+        rm -f ${output_dir}/tail.${workload_fname}.${app}.tidb.log.pid
+        echo "tikv log ends at: " `date +%Y-%m-%d\ %H:%M:%S` >> ${output_dir}/${workload_fname}.tikv.log
+        kill `cat ${output_dir}/tail.${workload_fname}.${app}.tikv.log.pid`
+        rm -f ${output_dir}/tail.${workload_fname}.${app}.tikv.log.pid
         sleep ${sleep_after_case}
 
         # manaully run vacuum to clean up the garbages start

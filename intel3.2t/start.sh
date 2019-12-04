@@ -15,7 +15,7 @@ sleep 5
 
 ##start tidb
 ${app_basedir}/bin/tidb-server --store=tikv --path=${host}:${port} --log-file=${app_tidblog} &
-sleep 5
+sleep 10
 
 #for i in {1..1200};
 #do
