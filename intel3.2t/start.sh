@@ -10,8 +10,7 @@ ${app_basedir}/bin/pd-server --data-dir=${app_datadir_pd} --log-file=${app_pdlog
 sleep 5
 
 ##start tikv
-${app_basedir}/bin/tikv-server --pd=${host}:${port} --store=${app_datadir_tikv} --log-file=${app_tikvlog} &
-#${app_basedir}/bin/tikv-server --pd=${host}:${port} --store=${app_datadir_tikv} --log-file=${app_tikvlog} -C ${tidb_cfg}  &
+${app_basedir}/bin/tikv-server --pd=${host}:${port} --store=${app_datadir_tikv} --log-file=${app_tikvlog} -C ${tidb_cfg}  &
 sleep 5
 
 ##start tidb
